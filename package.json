@@ -1,0 +1,21 @@
+{
+  "name": "mc-ugoki",
+  "version": "1.0.0",
+  "description": "A dynamic navigation/pathfinding plugin for the mineflayer project ",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm build run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Camezza/MC-Ugoki.git"
+  },
+  "author": "Firejoust",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Camezza/MC-Ugoki/issues"
+  },
+  "homepage": "https://github.com/Camezza/MC-Ugoki#readme"
+}
