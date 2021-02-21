@@ -16,13 +16,6 @@ import { Vec3 } from "vec3";
 // - success: A path was found
 type callback_reason = 'error' | 'interrupt' | 'failure' | 'success';
 
-// A node object used for comparison & pathing. Can optionally store data
-interface node {
-    position: Vec3,
-    identifier: string,
-    data?: Record<string, any>,
-}
-
 // Options required for the algorithm
 interface options {
     start: node,
@@ -35,6 +28,19 @@ interface options {
 interface path_data {
     status: callback_reason,
     path?: node[],
+}
+
+// A node object used for comparison & pathing. Can optionally store data
+export class node {
+    public position: Vec3;
+    public identifier: string;
+    public data?: Record<string, any>;
+
+    constructor(position: Vec3, data?: Record<string, any>) {
+        this.position = position;
+        this.identifier = position.toString() + `${Math.random()}`.substr(2,5);
+        this.data = data;
+    }
 }
 
 // Main class
@@ -70,25 +76,30 @@ export class BFS {
             (resolve) => {
 
                 // Stops pathfinding and returns a status message with the path
-                let terminate = (status?: callback_reason, path?: node[]) => {
+                function terminate(status?: callback_reason, path?: node[]) {
                     let reason = status || 'interrupt'; // No status specified (Manually stopped)
 
                     resolve({
                         status: reason,
-                        path: path,
+                        path: path || [],
                     });
                 }
 
                 // Initialisation
                 let path: node[] = [];
+                let closed_list, open_list = [];
+                let node_list: Record<string, string> = {};
                 let current_node = this.start;
                 let adjacent_nodes = this.getAdjacent(current_node); // get the initial adjacent nodes
                 this.cancelPath = terminate; // update termination method
 
                 // Keep repeating until there are no moves left or a path has been found
+                // ToDo: while openlist still has nodes
                 while (adjacent_nodes.length > 0 && !this.isDestination(current_node)) {
-
+                    
                 }
+
+                terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
             });
     }
 }
