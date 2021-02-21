@@ -1,5 +1,5 @@
 {
-  "name": "mc-ugoki",
+  "name": "mc-jidou",
   "version": "1.0.0",
   "description": "A dynamic navigation/pathfinding plugin for the mineflayer project ",
   "main": "dist/index.js",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Camezza/MC-Ugoki.git"
+    "url": "git+https://github.com/Camezza/MC-Jidou.git"
   },
   "author": "Firejoust",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Camezza/MC-Ugoki/issues"
+    "url": "https://github.com/Camezza/MC-Jidou/issues"
   },
-  "homepage": "https://github.com/Camezza/MC-Ugoki#readme",
+  "homepage": "https://github.com/Camezza/MC-Jidou#readme",
   "dependencies": {
     "vec3": "^0.1.7"
   }
