@@ -32,7 +32,7 @@ interface path_data {
 
 // A node object used for comparison & pathing. Can optionally store data
 export class node {
-    public identifier: string;
+    public identifier: string; // It would better to make this identifiable by data, not a random number
     public parent?: string;
     public data?: Record<string, any>;
 
@@ -50,6 +50,9 @@ export class node {
 // Main class
 export class BFS {
     private start: node;
+
+    // ToDo: Have these functions take data instead of nodes as parameters.
+    // This plugin should be assigning node values internally
     private isDestination: (destination_node: node) => boolean;
     private getAdjacent: (current_node: node) => node[];
     private getHeuristic: (current_node: node) => number;
@@ -100,6 +103,9 @@ export class BFS {
 
                 // Keep repeating until there are no moves left or a path has been found
                 // ToDo: while openlist still has nodes
+                // 1. Add adjacent to open list.
+                // 2. Find the node with the smallest h+g.
+                // 3. Add that node to the closed list
                 do 
                 {
                     closed_list.push(current_node.identifier);
@@ -110,6 +116,8 @@ export class BFS {
                     }
                 
                 } while (open_list.length > 0 && !this.isDestination(current_node));
+
+                // Generate a path by backtracking the final node
 
                 terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
             });
