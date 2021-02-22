@@ -32,14 +32,18 @@ interface path_data {
 
 // A node object used for comparison & pathing. Can optionally store data
 export class node {
-    public position: Vec3;
     public identifier: string;
+    public parent?: string;
     public data?: Record<string, any>;
 
-    constructor(position: Vec3, data?: Record<string, any>) {
-        this.position = position;
-        this.identifier = position.toString() + `${Math.random()}`.substr(2,5);
+    constructor(data?: Record<string, any>) {
+        this.identifier = new Date().getTime() + `${Math.random()}`.substr(2,5);
         this.data = data;
+    }
+
+    // Sets the parent node
+    public setParent(parent: string) {
+        this.parent = parent;
     }
 }
 
@@ -87,7 +91,8 @@ export class BFS {
 
                 // Initialisation
                 let path: node[] = [];
-                let closed_list, open_list = [];
+                let open_list = [];
+                let closed_list = [];
                 let node_list: Record<string, string> = {};
                 let current_node = this.start;
                 let adjacent_nodes = this.getAdjacent(current_node); // get the initial adjacent nodes
@@ -95,9 +100,16 @@ export class BFS {
 
                 // Keep repeating until there are no moves left or a path has been found
                 // ToDo: while openlist still has nodes
-                while (adjacent_nodes.length > 0 && !this.isDestination(current_node)) {
-                    
-                }
+                do 
+                {
+                    closed_list.push(current_node.identifier);
+
+                    for (let i = 0, il = adjacent_nodes.length; i < il; i++) {
+                        let adjacent_node = adjacent_nodes[i];
+                        adjacent_node.setParent(current_node.identifier);
+                    }
+                
+                } while (open_list.length > 0 && !this.isDestination(current_node));
 
                 terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
             });
