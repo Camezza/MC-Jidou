@@ -18,11 +18,12 @@ type callback_reason = 'error' | 'interrupt' | 'failure' | 'success';
 
 // Options required for the algorithm
 interface options {
-    start: node,
-    isDestination: (destination_node: node) => boolean,
-    getAdjacent: (current_node: node) => node[],
-    getHeuristic: (current_node: node) => number,
-    getMovementCost: (node_A: node, node_B: node) => number,
+    start: Record<any, any>, // Predefined node data
+    isDestination: (node_data: Record<any, any>) => boolean,
+    getAdjacent: (node_data: Record<any, any>) => node[],
+    getHeuristic: (node_data: Record<any, any>) => number,
+    getMovementCost: (node_data_A: Record<any, any>, node_data_B: Record<any, any>) => number,
+    getIdentifier: (node_data: Record<any, any>) => string,
 }
 
 interface path_data {
@@ -32,12 +33,12 @@ interface path_data {
 
 // A node object used for comparison & pathing. Can optionally store data
 export class node {
-    public identifier: string; // It would better to make this identifiable by data, not a random number
+    public identifier: string;
     public parent?: string;
-    public data?: Record<string, any>;
+    public data?: Record<any, any>;
 
-    constructor(data?: Record<string, any>) {
-        this.identifier = new Date().getTime() + `${Math.random()}`.substr(2,5);
+    constructor(identifier: string, data?: Record<any, any>) {
+        this.identifier = identifier;
         this.data = data;
     }
 
@@ -49,14 +50,15 @@ export class node {
 
 // Main class
 export class BFS {
-    private start: node;
+    private start: Record<any, any>;
 
     // ToDo: Have these functions take data instead of nodes as parameters.
     // This plugin should be assigning node values internally
-    private isDestination: (destination_node: node) => boolean;
-    private getAdjacent: (current_node: node) => node[];
-    private getHeuristic: (current_node: node) => number;
-    private getMovement: (node_A: node, node_B: node) => number;
+    private isDestination: (node_data: Record<any, any>) => boolean;
+    private getAdjacent: (node_data: Record<any, any>) => node[]; // change this later on
+    private getHeuristic: (node_data: Record<any, any>) => number;
+    private getMovement: (node_data_A: Record<any, any>, node_data_B: Record<any, any>) => number;
+    private getIdentifier: (node_data: Record<any, any>) => string;
 
     // Changed when pathfinder is evoked
     public cancelPath: () => void;
@@ -64,6 +66,7 @@ export class BFS {
     constructor(options: options) {
         this.start = options.start;
         this.isDestination = options.isDestination;
+        this.getIdentifier = options.getIdentifier;
         this.getAdjacent = options.getAdjacent;
         this.getHeuristic = options.getHeuristic;
         this.getMovement = options.getMovementCost;
@@ -97,7 +100,7 @@ export class BFS {
                 let open_list = [];
                 let closed_list = [];
                 let node_list: Record<string, string> = {};
-                let current_node = this.start;
+                let current_node = new node(this.getIdentifier(this.start), start); // start should be specified as a parameter; not in the plugin initialisation
                 let adjacent_nodes = this.getAdjacent(current_node); // get the initial adjacent nodes
                 this.cancelPath = terminate; // update termination method
 
