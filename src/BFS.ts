@@ -15,29 +15,29 @@ import { Vec3 } from "vec3";
 // - failure: No path could be found
 // - success: A path was found
 type callback_reason = 'error' | 'interrupt' | 'failure' | 'success';
-
-// Options required for the algorithm
-interface options {
-    start: Record<any, any>, // Predefined node data
-    isDestination: (node_data: Record<any, any>) => boolean,
-    getAdjacent: (node_data: Record<any, any>) => node[],
-    getHeuristic: (node_data: Record<any, any>) => number,
-    getMovementCost: (node_data_A: Record<any, any>, node_data_B: Record<any, any>) => number,
-    getIdentifier: (node_data: Record<any, any>) => string,
-}
+type node_data = Record<any, any>;
 
 interface path_data {
     status: callback_reason,
     path?: node[],
 }
 
+// Options required for the algorithm
+interface options {
+    isDestination: (data: node_data) => boolean,
+    getAdjacent: (data: node_data) => node_data[],
+    getHeuristic: (data: node_data) => number,
+    getMovementCost: (data_A: node_data, data_B: node_data) => number,
+    getIdentifier: (data: node_data) => string,
+}
+
 // A node object used for comparison & pathing. Can optionally store data
 export class node {
     public identifier: string;
     public parent?: string;
-    public data?: Record<any, any>;
+    public data?: node_data;
 
-    constructor(identifier: string, data?: Record<any, any>) {
+    constructor(identifier: string, data?: node_data) {
         this.identifier = identifier;
         this.data = data;
     }
@@ -50,21 +50,19 @@ export class node {
 
 // Main class
 export class BFS {
-    private start: Record<any, any>;
 
     // ToDo: Have these functions take data instead of nodes as parameters.
     // This plugin should be assigning node values internally
-    private isDestination: (node_data: Record<any, any>) => boolean;
-    private getAdjacent: (node_data: Record<any, any>) => node[]; // change this later on
-    private getHeuristic: (node_data: Record<any, any>) => number;
-    private getMovement: (node_data_A: Record<any, any>, node_data_B: Record<any, any>) => number;
-    private getIdentifier: (node_data: Record<any, any>) => string;
+    private isDestination: (data: node_data) => boolean;
+    private getAdjacent: (data: node_data) => node_data[]; // change this later on
+    private getHeuristic: (data: node_data) => number;
+    private getMovement: (data_A: node_data, data_B: node_data) => number;
+    private getIdentifier: (data: node_data) => string;
 
     // Changed when pathfinder is evoked
     public cancelPath: () => void;
 
     constructor(options: options) {
-        this.start = options.start;
         this.isDestination = options.isDestination;
         this.getIdentifier = options.getIdentifier;
         this.getAdjacent = options.getAdjacent;
@@ -74,14 +72,14 @@ export class BFS {
     }
 
     // Runs callback when a path has been found.
-    public async retreivePath(callback: (reason: callback_reason, path?: node[]) => void) {
+    public async retreivePath(start: node_data, callback: (reason: callback_reason, path?: node[]) => void) {
         this.cancelPath(); // cancel ongoing operations
-        let data = await this.calculatePath(); // asyncronously find a path
+        let data = await this.calculatePath(start); // asyncronously find a path
         callback(data.status, data.path); // run callback once finished
     }
 
     // Find a path from point A to B
-    private async calculatePath(): Promise<path_data> {
+    private async calculatePath(start: node_data): Promise<path_data> {
         return new Promise<path_data>(
             (resolve) => {
 
@@ -100,8 +98,8 @@ export class BFS {
                 let open_list = [];
                 let closed_list = [];
                 let node_list: Record<string, string> = {};
-                let current_node = new node(this.getIdentifier(this.start), start); // start should be specified as a parameter; not in the plugin initialisation
-                let adjacent_nodes = this.getAdjacent(current_node); // get the initial adjacent nodes
+                let current_node = new node(this.getIdentifier(start), start); // start should be specified as a parameter; not in the plugin initialisation
+                let adjacent_node_data = this.getAdjacent(current_node); // get the initial adjacent nodes
                 this.cancelPath = terminate; // update termination method
 
                 // Keep repeating until there are no moves left or a path has been found
@@ -112,11 +110,7 @@ export class BFS {
                 do 
                 {
                     closed_list.push(current_node.identifier);
-
-                    for (let i = 0, il = adjacent_nodes.length; i < il; i++) {
-                        let adjacent_node = adjacent_nodes[i];
-                        adjacent_node.setParent(current_node.identifier);
-                    }
+                    let adjacent_nodes = this.retreiveAdjacentNodes(current_node, adjacent_node_data);
                 
                 } while (open_list.length > 0 && !this.isDestination(current_node));
 
@@ -124,5 +118,17 @@ export class BFS {
 
                 terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
             });
+    }
+
+    private retreiveAdjacentNodes(current_node: node, adjacent_node_data: node_data[]): node[] {
+        let adjacent_nodes = [];
+
+        for (let data of adjacent_node_data) {
+            let adjacent_node = new node(this.getIdentifier(data), data);
+            adjacent_node.setParent(current_node.identifier);
+            adjacent_nodes.push(adjacent_node);
+        }
+
+        return adjacent_nodes;
     }
 }
