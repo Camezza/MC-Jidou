@@ -109,15 +109,10 @@ export class BFS {
                 let current_node = new node(current_node_identifier, this.getHeuristic(start), this.getMovement(start), start); // start should be specified as a parameter; not in the plugin initialisation
                 let adjacent_node_data = this.getAdjacent(start); // get the initial adjacent nodes
                 this.cancelPath = terminate; // update termination method
-
-                // Keep repeating until there are no moves left or a path has been found
-                // ToDo: while openlist still has nodes
-                // 1. Add adjacent to open list.
-                // 2. Find the node with the smallest h+g.
-                // 3. Add that node to the closed list
-
                 node_list[current_node.identifier] = current_node; // add record for current node
 
+
+                // Keep repeating until there are no moves left or a path has been found
                 do {
 
                     closed_list.push(current_node_identifier);
@@ -148,7 +143,7 @@ export class BFS {
                             cheapest_node_identifier = identifier;
                         }
 
-                        // Add rejected node back to open list
+                        // Add smaller node back to open list
                         else new_open_list.push(identifier);
                     };
                     open_list = new_open_list; // update the open list.
@@ -157,6 +152,8 @@ export class BFS {
                     current_node_identifier = cheapest_node_identifier;
 
                 } while (open_list.length > 0 && !this.isDestination(current_node));
+
+                // ToDo: Need to account for incomplete paths and calculate the closest node to the destination
 
                 // Generate a path by backtracking the final node
                 let path = this.retreiveFinalNodePath(current_node, node_list);
