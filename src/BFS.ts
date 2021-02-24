@@ -1,5 +1,5 @@
 /*
-// Best First Search
+// Pathfinder
 */
 
 /*
@@ -13,6 +13,7 @@
 // - failure: No path could be found
 // - success: A path was found
 type callback_reason = 'error' | 'interrupt' | 'failure' | 'success';
+type evaluation_type = 'greedy' | 'standard';
 type node_data = Record<any, any>;
 
 interface path_data {
@@ -24,9 +25,10 @@ interface path_data {
 interface options {
     isDestination: (data: node_data) => boolean,
     getAdjacent: (data: node_data) => node_data[],
-    getHeuristic: (data: node_data) => number,
-    getMovement: (data: node_data) => number,
+    getHeuristic: (data: node_data) => number, // Best to use chebychev heuristic
+    getMovement: (data: node_data) => number, 
     getIdentifier: (data: node_data) => string,
+    evaluation: evaluation_type,
 }
 
 // A node object used for comparison & pathing. Can optionally store data
@@ -60,6 +62,7 @@ export class BFS {
     private getHeuristic: (data: node_data) => number;
     private getMovement: (data: node_data) => number;
     private getIdentifier: (data: node_data) => string;
+    private evaluation: evaluation_type;
 
     // Changed when pathfinder is evoked
     public cancelPath: () => void;
@@ -70,6 +73,7 @@ export class BFS {
         this.getAdjacent = options.getAdjacent;
         this.getHeuristic = options.getHeuristic;
         this.getMovement = options.getMovement;
+        this.evaluation = options.evaluation || 'standard';
         this.cancelPath = () => { };
     }
 
@@ -86,7 +90,7 @@ export class BFS {
             (resolve) => {
 
                 // Stops pathfinding and returns a status message with the path
-                function terminate(status?: callback_reason, path?: node[]) {
+                function terminate(status?: callback_reason) {
                     let reason = status || 'interrupt'; // No status specified (Manually stopped)
 
                     resolve({
@@ -117,6 +121,7 @@ export class BFS {
                 do {
 
                     closed_list.push(current_node_identifier);
+                    // remove current_node_identifier from open list
                     let adjacent_nodes = this.retreiveAdjacentNodes(current_node, adjacent_node_data);
 
                     // Add adjacent nodes to open list (If valid)
@@ -131,14 +136,22 @@ export class BFS {
 
                     // Get the cheapest node from open list
                     let cheapest_node_identifier: string = open_list[0];
-                    for (let identifier of open_list) {
+                    let new_open_list: string[] = [];
+                    // start at index 1 (skip first element)
+                    for (let i = 1, il = open_list.length; i < il; i++) {
+                        let identifier = open_list[i];
                         let candidate_node = node_list[identifier];
 
                         // Found a shorter/cheaper route
-                        if (cheapest_node_identifier && (candidate_node.heuristic + candidate_node.cost < node_list[cheapest_node_identifier].heuristic + node_list[cheapest_node_identifier].cost)) {
+                        if (cheapest_node_identifier && (this.evaluateNode(candidate_node) < this.evaluateNode(node_list[cheapest_node_identifier]))) {
+                            new_open_list.push(cheapest_node_identifier); // add the previous smallest node back to oepn list
                             cheapest_node_identifier = identifier;
                         }
+
+                        // Add rejected node back to open list
+                        else new_open_list.push(identifier);
                     };
+                    open_list = new_open_list; // update the open list.
 
                     // set the new current node to the cheapest node
                     current_node_identifier = cheapest_node_identifier;
@@ -147,7 +160,7 @@ export class BFS {
 
                 // Generate a path by backtracking the final node
                 let path = this.retreiveFinalNodePath(current_node, node_list);
-                terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
+                terminate(path.length > 0 ? 'success' : 'failure'); // success if a path was generated
             });
     }
 
@@ -156,7 +169,7 @@ export class BFS {
         let adjacent_nodes = [];
 
         for (let data of adjacent_node_data) {
-            let adjacent_node = new node(this.getIdentifier(data), this.getHeuristic(data), this.getMovement(data), data);
+            let adjacent_node = new node(this.getIdentifier(data), this.getHeuristic(data), this.getMovement(data) + current_node.cost, data);
             adjacent_node.setParent(current_node.identifier);
             adjacent_nodes.push(adjacent_node);
         }
@@ -181,5 +194,12 @@ export class BFS {
         }
 
         return path;
+    }
+
+    // Returns the sum of the heuristic and movement cost taking evaluation type into consideration
+    private evaluateNode(current_node: node): number {
+        let heuristic = current_node.heuristic;
+        let cost = this.evaluation === 'greedy' ? 0 : current_node.cost; // ignore the cost for 'greedy' evaluation
+        return heuristic + cost;
     }
 }
