@@ -1,5 +1,3 @@
-import { Vec3 } from "vec3";
-
 /*
 // Best First Search
 */
@@ -27,18 +25,22 @@ interface options {
     isDestination: (data: node_data) => boolean,
     getAdjacent: (data: node_data) => node_data[],
     getHeuristic: (data: node_data) => number,
-    getMovementCost: (data_A: node_data, data_B: node_data) => number,
+    getMovement: (data: node_data) => number,
     getIdentifier: (data: node_data) => string,
 }
 
 // A node object used for comparison & pathing. Can optionally store data
 export class node {
     public identifier: string;
+    public heuristic: number;
+    public cost: number;
     public parent?: string;
     public data?: node_data;
 
-    constructor(identifier: string, data?: node_data) {
+    constructor(identifier: string, heuristic: number, cost: number, data?: node_data) {
         this.identifier = identifier;
+        this.heuristic = heuristic;
+        this.cost = cost;
         this.data = data;
     }
 
@@ -56,7 +58,7 @@ export class BFS {
     private isDestination: (data: node_data) => boolean;
     private getAdjacent: (data: node_data) => node_data[]; // change this later on
     private getHeuristic: (data: node_data) => number;
-    private getMovement: (data_A: node_data, data_B: node_data) => number;
+    private getMovement: (data: node_data) => number;
     private getIdentifier: (data: node_data) => string;
 
     // Changed when pathfinder is evoked
@@ -67,8 +69,8 @@ export class BFS {
         this.getIdentifier = options.getIdentifier;
         this.getAdjacent = options.getAdjacent;
         this.getHeuristic = options.getHeuristic;
-        this.getMovement = options.getMovementCost;
-        this.cancelPath = () => {};
+        this.getMovement = options.getMovement;
+        this.cancelPath = () => { };
     }
 
     // Runs callback when a path has been found.
@@ -93,13 +95,15 @@ export class BFS {
                     });
                 }
 
-                // Initialisation
-                let path: node[] = [];
-                let open_list = [];
-                let closed_list = [];
-                let node_list: Record<string, string> = {};
-                let current_node = new node(this.getIdentifier(start), start); // start should be specified as a parameter; not in the plugin initialisation
-                let adjacent_node_data = this.getAdjacent(current_node); // get the initial adjacent nodes
+                // List initialisation
+                let open_list: string[] = [];
+                let closed_list: string[] = [];
+                let node_list: Record<string, node> = {};
+
+                // Current node initialisation
+                let current_node_identifier = this.getIdentifier(start);
+                let current_node = new node(current_node_identifier, this.getHeuristic(start), this.getMovement(start), start); // start should be specified as a parameter; not in the plugin initialisation
+                let adjacent_node_data = this.getAdjacent(start); // get the initial adjacent nodes
                 this.cancelPath = terminate; // update termination method
 
                 // Keep repeating until there are no moves left or a path has been found
@@ -107,28 +111,75 @@ export class BFS {
                 // 1. Add adjacent to open list.
                 // 2. Find the node with the smallest h+g.
                 // 3. Add that node to the closed list
-                do 
-                {
-                    closed_list.push(current_node.identifier);
+
+                node_list[current_node.identifier] = current_node; // add record for current node
+
+                do {
+
+                    closed_list.push(current_node_identifier);
                     let adjacent_nodes = this.retreiveAdjacentNodes(current_node, adjacent_node_data);
-                
+
+                    // Add adjacent nodes to open list (If valid)
+                    adjacent_nodes.forEach((adjacent_node: node) => {
+                        node_list[adjacent_node.identifier] = adjacent_node;
+
+                        // Node is valid (Not in closed list)
+                        if (!closed_list.includes(adjacent_node.identifier)) { // for efficiency, maybe put in retreiveAdjacentNodes
+                            open_list.push(adjacent_node.identifier);
+                        }
+                    });
+
+                    // Get the cheapest node from open list
+                    let cheapest_node_identifier: string = open_list[0];
+                    for (let identifier of open_list) {
+                        let candidate_node = node_list[identifier];
+
+                        // Found a shorter/cheaper route
+                        if (cheapest_node_identifier && (candidate_node.heuristic + candidate_node.cost < node_list[cheapest_node_identifier].heuristic + node_list[cheapest_node_identifier].cost)) {
+                            cheapest_node_identifier = identifier;
+                        }
+                    };
+
+                    // set the new current node to the cheapest node
+                    current_node_identifier = cheapest_node_identifier;
+
                 } while (open_list.length > 0 && !this.isDestination(current_node));
 
                 // Generate a path by backtracking the final node
-
+                let path = this.retreiveFinalNodePath(current_node, node_list);
                 terminate(path.length > 0 ? 'success' : 'failure', path); // success if a path was generated
             });
     }
 
+    // Converts adjacent node data into nodes and sets its parent
     private retreiveAdjacentNodes(current_node: node, adjacent_node_data: node_data[]): node[] {
         let adjacent_nodes = [];
 
         for (let data of adjacent_node_data) {
-            let adjacent_node = new node(this.getIdentifier(data), data);
+            let adjacent_node = new node(this.getIdentifier(data), this.getHeuristic(data), this.getMovement(data), data);
             adjacent_node.setParent(current_node.identifier);
             adjacent_nodes.push(adjacent_node);
         }
 
         return adjacent_nodes;
+    }
+
+    // Return the path backtracked from the final node
+    private retreiveFinalNodePath(final_node: node, node_list: Record<string, node>): node[] {
+        let path: node[] = [];
+        let current_node = final_node;
+
+        // Final node has a parent node (Start != Finish)
+        if (final_node.parent) {
+
+            // Repeat while current node still has a parent node
+            while (current_node.parent) {
+                let identifier = current_node.parent;
+                current_node = node_list[identifier];
+                path.push(current_node);
+            };
+        }
+
+        return path;
     }
 }
