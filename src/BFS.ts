@@ -159,14 +159,27 @@ export class BFS {
 
                 // Generate a path by backtracking the final node
                 // ToDo: change current_node to closest node if interrupted/incomplete
-                let closest_node = 
-                let path = this.retreiveFinalNodePath(current_node, node_list);
+                let closest_node: node;
+                let path: node[];
+                let status: callback_reason; // not used for interrupt
+
+                // A path was successfully found
+                if (this.isDestination(current_node)) {
+                    closest_node = current_node;
+                    path = this.retreiveFinalNodePath(closest_node, node_list);
+                    status = 'success';
+                }
+
+                // No path; Either partially or completely.
+                else {
+                    closest_node = this.retreiveClosestNode(node_list);
+                    path = this.retreiveFinalNodePath(closest_node, node_list);
+                    status = path.length < 1 ? 'failure' : 'incomplete';
+                }
 
                 // Program has been forcefully terminated (interrupt)
                 if (terminated) return;
-
-                let status: callback_reason = path.length === 0 ? 'failure' : // Path is zero; No possible moves.
-                    (this.isDestination(current_node) ? 'success' : 'incomplete'); // Path is higher than zero; Either successful or incomplete.
+                
                 terminate(status); // success if a path was generated
             });
     }
@@ -212,6 +225,19 @@ export class BFS {
 
     // Returns the closest node to the objective, called when interrupted or a path couldn't be found
     private retreiveClosestNode(node_list: Record<string, node>): node {
+        let keys = Object.keys(node_list);
+        let closest_node: string = keys[0]; // node_list will never be empty so we can do this
 
+        // check every registered node
+        for (let i = 1, il = keys.length; i < il; i++) {
+            let candidate_identifier = keys[i];
+            let candidate_node = node_list[candidate_identifier];
+
+            // Found a closer node
+            if (candidate_node.heuristic < node_list[closest_node].heuristic) {
+                closest_node = candidate_identifier;
+            }
+        }
+        return node_list[closest_node];
     };
 }

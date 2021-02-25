@@ -6,7 +6,7 @@ import { movement } from "./movement";
 // Main plugin
 */
 
-export namespace ugoki {
+export namespace jidou {
     export class plugin {
         private debug: boolean;
         //private BFS_plugin: BFS;
