@@ -8,11 +8,11 @@
 */
 
 // Reasons for why pathfinding has stopped
-// - error: An error has occured
-// - interrupt: Pathfinding has been stopped either manually or by starting another instance
 // - failure: No path could be found
+// - interrupt: Pathfinding has been stopped either manually or by starting another instance
+// - incomplete: No more spaces to move, will retreive the path of the closest node to destination
 // - success: A path was found
-type callback_reason = 'error' | 'interrupt' | 'failure' | 'success';
+type callback_reason = 'failure' | 'interrupt' | 'incomplete' | 'success';
 type evaluation_type = 'greedy' | 'standard';
 type node_data = Record<any, any>;
 
@@ -26,7 +26,7 @@ interface options {
     isDestination: (data: node_data) => boolean,
     getAdjacent: (data: node_data) => node_data[],
     getHeuristic: (data: node_data) => number, // Best to use chebychev heuristic
-    getMovement: (data: node_data) => number, 
+    getMovement: (data: node_data) => number,
     getIdentifier: (data: node_data) => string,
     evaluation: evaluation_type,
 }
@@ -88,6 +88,8 @@ export class BFS {
     private async calculatePath(start: node_data): Promise<path_data> {
         return new Promise<path_data>(
             (resolve) => {
+                // Whether or not to keep the program running
+                let terminated = false;
 
                 // Stops pathfinding and returns a status message with the path
                 function terminate(status?: callback_reason) {
@@ -123,8 +125,8 @@ export class BFS {
                     adjacent_nodes.forEach((adjacent_node: node) => {
                         node_list[adjacent_node.identifier] = adjacent_node;
 
-                        // Node is valid (Not in closed list)
-                        if (!closed_list.includes(adjacent_node.identifier)) { // for efficiency, maybe put in retreiveAdjacentNodes
+                        // Node is valid (Not in closed list or open list)
+                        if (!closed_list.includes(adjacent_node.identifier) && !closed_list.includes(adjacent_node.identifier)) { // for efficiency, maybe put in retreiveAdjacentNodes
                             open_list.push(adjacent_node.identifier);
                         }
                     });
@@ -151,13 +153,21 @@ export class BFS {
                     // set the new current node to the cheapest node
                     current_node_identifier = cheapest_node_identifier;
 
-                } while (open_list.length > 0 && !this.isDestination(current_node));
+                } while (!terminated && open_list.length > 0 && !this.isDestination(current_node));
 
                 // ToDo: Need to account for incomplete paths and calculate the closest node to the destination
 
                 // Generate a path by backtracking the final node
+                // ToDo: change current_node to closest node if interrupted/incomplete
+                let closest_node = 
                 let path = this.retreiveFinalNodePath(current_node, node_list);
-                terminate(path.length > 0 ? 'success' : 'failure'); // success if a path was generated
+
+                // Program has been forcefully terminated (interrupt)
+                if (terminated) return;
+
+                let status: callback_reason = path.length === 0 ? 'failure' : // Path is zero; No possible moves.
+                    (this.isDestination(current_node) ? 'success' : 'incomplete'); // Path is higher than zero; Either successful or incomplete.
+                terminate(status); // success if a path was generated
             });
     }
 
@@ -199,4 +209,9 @@ export class BFS {
         let cost = this.evaluation === 'greedy' ? 0 : current_node.cost; // ignore the cost for 'greedy' evaluation
         return heuristic + cost;
     }
+
+    // Returns the closest node to the objective, called when interrupted or a path couldn't be found
+    private retreiveClosestNode(node_list: Record<string, node>): node {
+
+    };
 }
