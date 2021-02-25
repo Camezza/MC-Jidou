@@ -54,9 +54,6 @@ export class node {
 
 // Main class
 export class BFS {
-
-    // ToDo: Have these functions take data instead of nodes as parameters.
-    // This plugin should be assigning node values internally
     private isDestination: (data: node_data) => boolean;
     private getAdjacent: (data: node_data) => node_data[]; // change this later on
     private getHeuristic: (data: node_data) => number;
@@ -155,10 +152,7 @@ export class BFS {
 
                 } while (!terminated && open_list.length > 0 && !this.isDestination(current_node));
 
-                // ToDo: Need to account for incomplete paths and calculate the closest node to the destination
-
                 // Generate a path by backtracking the final node
-                // ToDo: change current_node to closest node if interrupted/incomplete
                 let closest_node: node;
                 let path: node[];
                 let status: callback_reason; // not used for interrupt
