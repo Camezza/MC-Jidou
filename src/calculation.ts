@@ -37,7 +37,13 @@ export class calculation {
     }
 
     public adjacentNodes(data_A: node_data) {
-        
+        // calculate maximum jump distance
+        let gravity = 32; // only true for players
+        let velocity_h = this.bot.physics.maxGroundSpeed;
+        let velocity_y = 0.42 * 20; // 0.42m/t. 20 Ticks per second
+        let time = velocity_y/gravity; // time it takes to ascend while jumping
+        let maximum_jump_distance = Math.floor(time * velocity_h);
+
     }
 
     
