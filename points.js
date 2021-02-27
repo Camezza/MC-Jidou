@@ -5,6 +5,8 @@ let checks = square_area - previous_square_area; // gets the points on the radiu
 
 let point_history = {};
 
+
+// method required for reducing duplicates
 for (let i = 0, il = checks; i < il; i++) {
 
 let y = radius * Math.sin(2 * Math.PI * (i/il));
