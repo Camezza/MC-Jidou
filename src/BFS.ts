@@ -21,7 +21,6 @@ interface path_data {
     path?: node[],
 }
 
-// Options required for the algorithm
 interface options {
     isDestination: (data: node_data) => boolean,
     getAdjacent: (data: node_data) => node_data[],
@@ -46,16 +45,14 @@ export class node {
         this.data = data;
     }
 
-    // Sets the parent node
     public setParent(parent: string) {
         this.parent = parent;
     }
 }
 
-// Main class
 export class BFS {
     private isDestination: (data: node_data) => boolean;
-    private getAdjacent: (data: node_data) => node_data[]; // change this later on
+    private getAdjacent: (data: node_data) => node_data[];
     private getHeuristic: (data: node_data) => number;
     private getMovement: (data: node_data) => number;
     private getIdentifier: (data: node_data) => string;
@@ -76,9 +73,9 @@ export class BFS {
 
     // Runs callback when a path has been found.
     public async retreivePath(start: node_data, callback: (reason: callback_reason, path?: node[]) => void) {
-        this.cancelPath(); // cancel ongoing operations
+        this.cancelPath();
         let data = await this.calculatePath(start); // asyncronously find a path
-        callback(data.status, data.path); // run callback once finished
+        callback(data.status, data.path);
     }
 
     // Find a path from point A to B
@@ -86,7 +83,7 @@ export class BFS {
         return new Promise<path_data>(
             (resolve) => {
                 // Whether or not to keep the program running
-                let terminated = false;
+                let interrupted = false;
 
                 // Stops pathfinding and returns a status message with the path
                 function terminate(status?: callback_reason) {
@@ -106,10 +103,9 @@ export class BFS {
                 // Current node initialisation
                 let current_node_identifier = this.getIdentifier(start);
                 let current_node = new node(current_node_identifier, this.getHeuristic(start), this.getMovement(start), start); // start should be specified as a parameter; not in the plugin initialisation
-                let adjacent_node_data = this.getAdjacent(start); // get the initial adjacent nodes
-                this.cancelPath = terminate; // update termination method
-                node_list[current_node.identifier] = current_node; // add record for current node
-
+                let adjacent_node_data = this.getAdjacent(start);
+                this.cancelPath = () => interrupted = true;
+                node_list[current_node.identifier] = current_node;
 
                 // Keep repeating until there are no moves left or a path has been found
                 do {
@@ -131,26 +127,30 @@ export class BFS {
                     // Get the cheapest node from open list
                     let cheapest_node_identifier: string = open_list[0];
                     let new_open_list: string[] = [];
-                    // start at index 1 (skip first element)
+
                     for (let i = 1, il = open_list.length; i < il; i++) {
                         let identifier = open_list[i];
                         let candidate_node = node_list[identifier];
 
-                        // Found a shorter/cheaper route
-                        if (cheapest_node_identifier && (this.evaluateNode(candidate_node) < this.evaluateNode(node_list[cheapest_node_identifier]))) {
-                            new_open_list.push(cheapest_node_identifier); // add the previous smallest node back to oepn list
-                            cheapest_node_identifier = identifier;
-                        }
+                        // Avoid adding back the node that has already been checked
+                        if (identifier !== current_node_identifier) {
 
-                        // Add smaller node back to open list
-                        else new_open_list.push(identifier);
+                            // Found a shorter/cheaper route
+                            if (cheapest_node_identifier && (this.evaluateNode(candidate_node) < this.evaluateNode(node_list[cheapest_node_identifier]))) {
+                                new_open_list.push(cheapest_node_identifier); // add the previous smallest node back to oepn list
+                                cheapest_node_identifier = identifier;
+                            }
+
+                            // Add smaller node back to open list
+                            else new_open_list.push(identifier);
+                        }
                     };
                     open_list = new_open_list; // update the open list.
 
                     // set the new current node to the cheapest node
                     current_node_identifier = cheapest_node_identifier;
 
-                } while (!terminated && open_list.length > 0 && !this.isDestination(current_node));
+                } while (!interrupted && open_list.length > 0 && !this.isDestination(current_node));
 
                 // Generate a path by backtracking the final node
                 let closest_node: node;
@@ -168,13 +168,11 @@ export class BFS {
                 else {
                     closest_node = this.retreiveClosestNode(node_list);
                     path = this.retreiveFinalNodePath(closest_node, node_list);
-                    status = path.length < 1 ? 'failure' : 'incomplete';
+                    status = interrupted ? 'interrupt' : path.length < 1 ? 'failure' : 'incomplete';
                 }
 
-                // Program has been forcefully terminated (interrupt)
-                if (terminated) return;
-                
-                terminate(status); // success if a path was generated
+                // success if a path was generated
+                terminate(status);
             });
     }
 
