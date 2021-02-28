@@ -43,7 +43,7 @@ export class calculation {
 
         // Retreive a list of nodes from each radius
         for (let radius = 1; radius <= maximum_jump_distance; radius++) {
-            // get list of points from circle function
+            
         }
 
     }
@@ -55,45 +55,4 @@ export class calculation {
         let time = velocity_y / gravity;
         return Math.ceil(2 * time * velocity_h); // double time for ascension + descension 
     }
-
-    private retreiveRelativePoints(radius: number, specific_angle?: number): [number, number][] {
-        let square_area = (1 + (radius * 2)) ** 2;
-        let previous_square_area = (1 + ((radius - 1) * 2)) ** 2;
-        let checks = square_area - previous_square_area; // gets the points on the radius of the circle
-        let offset = 360 / checks;
-        let points: [number, number][] = [];
-
-        // Specific angle specified
-        if (specific_angle) {
-
-            // Get adjacent points from angle (left, middle, right)
-            for (let min = specific_angle - offset, max = specific_angle + offset; min <= max; min += offset) {
-                points.push(this.retreiveCirclePoint(radius, min));
-            }
-        }
-
-        // No angle specified; Get all points in a 360
-        else {
-
-            // Increment angle for every point (block) in the circles radius
-            for (let angle = 0, max_angle = 360; angle < max_angle; angle += offset) {
-                points.push(this.retreiveCirclePoint(radius, angle));
-            }
-        }
-
-        return points;
-    }
-
-    // Retreives the point at a specified angle in a circle
-    private retreiveCirclePoint(radius: number, angle: number): [number, number] {
-        let radians: number = angle * Math.PI / 180;
-        let x = parseFloat((radius * Math.sin(radians)).toFixed(1));
-        let z = parseFloat((radius * Math.cos(radians)).toFixed(1));
-        x = x % 1 !== 0 ? Math.sign(x) * Math.ceil(Math.abs(x)) : x; // round point up to fit cartesian plane
-        z = z % 1 !== 0 ? Math.sign(z) * Math.ceil(Math.abs(z)) : z;
-        return [x, z];
-    }
-
-
-
 }
