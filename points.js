@@ -1,25 +1,31 @@
-let radius = 1;
+let radius = 5;
 let square_area = (1 + (radius * 2))**2;
 let previous_square_area = (1+((radius-1) * 2))**2;
 let checks = square_area - previous_square_area; // gets the points on the radius of the circle
-
 let point_history = {};
+
+let specific_angle = 45;
+let specific_angle_offset = 360 / checks;
+
+for (let min = specific_angle - specific_angle_offset, max = specific_angle + specific_angle_offset; min <= max; min += specific_angle_offset) {
+    console.log(min);
+}
 
 
 // method required for reducing duplicates
 for (let i = 0, il = checks; i < il; i++) {
 
-let y = radius * Math.sin(2 * Math.PI * (i/il));
-y = y.toFixed(1) % 1 !== 0 ? Math.sign(y) * Math.ceil(Math.abs(y)) : y; // wtf?
+let y = (radius * Math.sin(2 * Math.PI * (i/il))).toFixed(1);
+y = y % 1 !== 0 ? Math.sign(y) * Math.ceil(Math.abs(y)) : y; // wtf?
 
-let x = radius * Math.cos(2 * Math.PI * (i/il));
-x = x.toFixed(1) % 1 !== 0 ? Math.sign(x) * Math.ceil(Math.abs(x)) : x;
-
-
-point_history[`x${x}_y${y}`] = (i/il)*360;
+let x = (radius * Math.cos(2 * Math.PI * (i/il))).toFixed(1);
+x = x % 1 !== 0 ? Math.sign(x) * Math.ceil(Math.abs(x)) : x;
 
 
-console.log(`At ${(i/il)*360}: (${x.toFixed(1)}, ${y.toFixed(1)})`);
+point_history[`X=${x}_Y=${y}`] = (i/il)*360;
+
+
+console.log(`At ${(i/il)*360}: (${x}, ${y})`);
 }
 console.log(point_history);
 
