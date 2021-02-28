@@ -38,21 +38,23 @@ export class calculation {
     }
 
     public retreiveAdjacentNodes(data_A: node_data) {
-        let maximum_jump_distance = this.retreiveMaxJumpDistance();
+        let jump_distance = this.retreiveJumpDistance();
         let node_list: Record<string, number> = {};
 
         // Retreive a list of nodes from each radius
-        for (let radius = 1; radius <= maximum_jump_distance; radius++) {
+        for (let radius = 1; radius <= jump_distance; radius++) {
             
         }
 
     }
 
-    private retreiveMaxJumpDistance(): number {
+    private retreiveJumpDistance(): number {
         let gravity = 32;
         let velocity_h = this.bot.physics.maxGroundSpeed; // ToDo: Account for sprinting, sprint jumping, etc.
         let velocity_y = 0.42 * 20; // 20 ticks per second
         let time = velocity_y / gravity;
-        return Math.ceil(2 * time * velocity_h); // double time for ascension + descension 
+        let maximum_jump_distance = 2 * time * velocity_h;
+        let realistic_jump_distance = Math.floor(((maximum_jump_distance**2)/2) ** (1/2) + 0.6); // Maximum diagonal jump distance, taking 0.3 block edge stand limit into consideration
+        return realistic_jump_distance;
     }
 }
