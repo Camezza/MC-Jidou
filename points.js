@@ -1,4 +1,4 @@
-let radius = 5;
+let radius = 1;
 let square_area = (1 + (radius * 2))**2;
 let previous_square_area = (1+((radius-1) * 2))**2;
 let checks = square_area - previous_square_area; // gets the points on the radius of the circle
