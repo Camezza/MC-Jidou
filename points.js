@@ -16,16 +16,16 @@ for (let min = specific_angle - specific_angle_offset, max = specific_angle + sp
 for (let i = 0, il = checks; i < il; i++) {
 
 let y = (radius * Math.sin(2 * Math.PI * (i/il)));
-y = y % 1 !== 0 ? Math.sign(y) * Math.ceil(Math.abs(y)) : y; // wtf?
+y = Math.sign(y) * Math.abs(y)**(1/100); // wtf?
 
 let x = (radius * Math.cos(2 * Math.PI * (i/il)));
-x = x % 1 !== 0 ? Math.sign(x) * Math.ceil(Math.abs(x)) : x;
+x = Math.sign(x) * Math.abs(x)**(1/100);
 
 
 // point_history[`X=${x}_Y=${y}`] = (i/il)*360;
 
 
-console.log(`At ${(i/il)*360}: (${x**(1/100)}, ${y**(1/100)})`);
+console.log(`At ${(i/il)*360}: (${x}, ${y})`);
 }
 console.log(point_history);
 

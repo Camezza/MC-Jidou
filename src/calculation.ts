@@ -56,6 +56,7 @@ export class calculation {
         }
     }
 
+    // don't need this
     private retreiveCardinalNodes(radius: number): [number, number][] {
         return [
             [1 * radius, 0],
