@@ -46,6 +46,7 @@ export class calculation {
 
         // for [x, y]: [x^(1/100), y^(1/100)]
         // this will give us square circle for cartesian coordinates
+        // btw cannot square root negatives
 
         // Retreive a list of nodes from each radius
         for (let radius = 1; radius <= jump_distance || radius === -1; radius++) {
