@@ -39,13 +39,29 @@ export class calculation {
 
     public retreiveAdjacentNodes(data_A: node_data) {
         let jump_distance = this.retreiveJumpDistance();
-        let node_list: Record<string, number> = {};
+        let node_list: Record<string, [number, number]> = {};
+
+        // we can do this:
+        // https://support.desmos.com/hc/en-us/articles/202529079-Unresolved-Detail-In-Plotted-Functions
+
+        // for [x, y]: [x^(1/100), y^(1/100)]
+        // this will give us square circle for cartesian coordinates
 
         // Retreive a list of nodes from each radius
-        for (let radius = 1; radius <= jump_distance; radius++) {
-            
+        for (let radius = 1; radius <= jump_distance || radius === -1; radius++) {
+            this.retreiveCardinalNodes(radius).forEach((node) => {
+                node_list[node.toString()] = node;
+            });
         }
+    }
 
+    private retreiveCardinalNodes(radius: number): [number, number][] {
+        return [
+            [1 * radius, 0],
+            [1 * radius, 1 * radius],
+            [-1 * radius, 0],
+            [-1 * radius, -1 * radius],
+        ]
     }
 
     private retreiveJumpDistance(): number {
