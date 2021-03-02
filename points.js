@@ -1,4 +1,4 @@
-let radius = 1;
+let radius = 3;
 let square_area = (1 + (radius * 2))**2;
 let previous_square_area = (1+((radius-1) * 2))**2;
 let checks = square_area - previous_square_area; // gets the points on the radius of the circle
@@ -13,20 +13,24 @@ for (let min = specific_angle - specific_angle_offset, max = specific_angle + sp
 
 
 // method required for reducing duplicates
+console.time();
 for (let i = 0, il = checks; i < il; i++) {
 
-let y = (radius * Math.sin(2 * Math.PI * (i/il)));
-y = Math.sign(y) * Math.abs(y)**(1/100); // wtf?
 
-let x = (radius * Math.cos(2 * Math.PI * (i/il)));
-x = Math.sign(x) * Math.abs(x)**(1/100);
+let x = (radius * parseFloat(Math.cos(2 * Math.PI * (i/il)).toFixed(20)));
+let y = (radius * parseFloat(Math.sin(2 * Math.PI * (i/il)).toFixed(20)));
 
+
+// ^^^^^^^^^^^^^^ NEED TO ROUTE AFTER APPLYING RADIUS
+
+
+x = Math.sign(x) * Math.abs(x)**(1/98);
+y = Math.sign(y) * Math.abs(y)**(1/98); // wtf?
 
 // point_history[`X=${x}_Y=${y}`] = (i/il)*360;
-
-
 console.log(`At ${(i/il)*360}: (${x}, ${y})`);
 }
+console.timeEnd();
 console.log(point_history);
 
 
