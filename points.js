@@ -1,4 +1,4 @@
-let radius = 3;
+let radius = 2;
 let square_area = (1 + (radius * 2))**2;
 let previous_square_area = (1+((radius-1) * 2))**2;
 let checks = square_area - previous_square_area; // gets the points on the radius of the circle
@@ -17,18 +17,19 @@ console.time();
 for (let i = 0, il = checks; i < il; i++) {
 
 
-let x = (radius * parseFloat(Math.cos(2 * Math.PI * (i/il)).toFixed(20)));
-let y = (radius * parseFloat(Math.sin(2 * Math.PI * (i/il)).toFixed(20)));
+let cosine_x = Math.cos(2 * Math.PI * (i/il));
+let sine_x = Math.sin(2 * Math.PI * (i/il));
+let x = Math.sign(cosine_x) * radius * parseFloat(Math.abs(cosine_x).toFixed(2))**(1/4);
+let y = Math.sign(sine_x) * radius * parseFloat(Math.abs(sine_x).toFixed(2))**(1/4);
+
+// ^^^^^^^^^^^^^^ DO NOT APPLY ROUTE TO RADIUS, ONLY APPLY ROUTE TO SIN/COS ANGLE
 
 
-// ^^^^^^^^^^^^^^ NEED TO ROUTE AFTER APPLYING RADIUS
-
-
-x = Math.sign(x) * Math.abs(x)**(1/98);
-y = Math.sign(y) * Math.abs(y)**(1/98); // wtf?
+//x = Math.sign(x) * Math.abs(x)**(1/98);
+//y = Math.sign(y) * Math.abs(y)**(1/98); // wtf?
 
 // point_history[`X=${x}_Y=${y}`] = (i/il)*360;
-console.log(`At ${(i/il)*360}: (${x}, ${y})`);
+console.log(`At ${(i/il)*360}: (${Math.round(x)}, ${Math.round(y)})`);
 }
 console.timeEnd();
 console.log(point_history);
