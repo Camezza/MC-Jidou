@@ -28,6 +28,13 @@ let y = Math.sign(sine_x) * radius * parseFloat(Math.abs(sine_x).toFixed(2))**(1
 //x = Math.sign(x) * Math.abs(x)**(1/98);
 //y = Math.sign(y) * Math.abs(y)**(1/98); // wtf?
 
+/*
+// Ideas:
+- http://polymathprogrammer.com/2010/02/22/quiz-can-you-describe-square-with-1-equation/
+- http://polymathprogrammer.com/2010/03/08/a-square-described-in-any-rotational-orientation-with-1-equation/
+- http://jwilson.coe.uga.edu/EMAT6680Fa10/Kerry/assignment1/writeup1.html
+*/
+
 // point_history[`X=${x}_Y=${y}`] = (i/il)*360;
 console.log(`At ${(i/il)*360}: (${Math.round(x)}, ${Math.round(y)})`);
 }
