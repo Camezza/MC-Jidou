@@ -33,6 +33,10 @@ let y = Math.sign(sine_x) * radius * parseFloat(Math.abs(sine_x).toFixed(2))**(1
 - http://polymathprogrammer.com/2010/02/22/quiz-can-you-describe-square-with-1-equation/
 - http://polymathprogrammer.com/2010/03/08/a-square-described-in-any-rotational-orientation-with-1-equation/
 - http://jwilson.coe.uga.edu/EMAT6680Fa10/Kerry/assignment1/writeup1.html
+- https://library.osu.edu/ojs/index.php/OJSM/article/download/6367/5065
+
+Found something new:
+- https://math.stackexchange.com/questions/1880736/how-do-i-determine-the-point-on-a-square-inside-a-circle-depending-on-an-angle
 */
 
 // point_history[`X=${x}_Y=${y}`] = (i/il)*360;
