@@ -1,4 +1,4 @@
-let radius = 2;
+let radius = 3;
 let square_area = (1 + (radius * 2))**2;
 let previous_square_area = (1+((radius-1) * 2))**2;
 let checks = square_area - previous_square_area; // gets the points on the radius of the circle
@@ -16,11 +16,10 @@ for (let min = specific_angle - specific_angle_offset, max = specific_angle + sp
 console.time();
 for (let i = 0, il = checks; i < il; i++) {
 
-
-let cosine_x = Math.cos(2 * Math.PI * (i/il));
-let sine_x = Math.sin(2 * Math.PI * (i/il));
-let x = Math.sign(cosine_x) * radius * parseFloat(Math.abs(cosine_x).toFixed(2))**(1/4);
-let y = Math.sign(sine_x) * radius * parseFloat(Math.abs(sine_x).toFixed(2))**(1/4);
+let cosine = Math.cos(2 * Math.PI * (i/il));
+let sine = Math.sin(2 * Math.PI * (i/il));
+let x = radius*(cosine)/(Math.max(Math.abs(cosine), Math.abs(sine)));
+let y = radius*(sine)/(Math.max(Math.abs(cosine), Math.abs(sine)));
 
 // ^^^^^^^^^^^^^^ DO NOT APPLY ROUTE TO RADIUS, ONLY APPLY ROUTE TO SIN/COS ANGLE
 
