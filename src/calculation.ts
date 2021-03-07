@@ -20,6 +20,19 @@ interface node_data {
 
 export class calculation {
     private bot: mineflayer.Bot;
+    private cardinal_sign = [
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+        [0, -1],
+    ];
+
+    private diagonal_sign = [
+        [1, 1],
+        [-1, 1],
+        [-1, -1],
+        [1, -1],
+    ]
 
     constructor(bot: mineflayer.Bot) {
         this.bot = bot;
@@ -39,40 +52,75 @@ export class calculation {
 
     public retreiveAdjacentNodes(data_A: node_data) {
         let jump_distance = this.retreiveJumpDistance();
-        let node_list: Record<string, [number, number]> = {};
+        let valid_nodes: Record<number, number[]> = {}; 
 
-        // we can do this:
-        // https://support.desmos.com/hc/en-us/articles/202529079-Unresolved-Detail-In-Plotted-Functions
+        // filters non-cardinal nodes by only checking between min/max angles
+        let diagonal_angle_range: Record<number, number[]> = {
+            45: [-1, -1], // min, max
+            135: [-1, -1],
+            225: [-1, -1],
+            315: [-1, -1],
+        }
+        let valid_angles: Record<number, number[]> = {};  // // (angle: true)
+        
+        /* For now, only use radius 1
+        for (let radius = 1; radius <= jump_distance; radius++) {*/
+        for (let radius = 1; radius < 2; radius++) {
+            let plausible = this.retreiveRadiusVec2(radius);
 
-        // for [x, y]: [x^(1/100), y^(1/100)]
-        // this will give us square circle for cartesian coordinates
-        // btw cannot square root negatives
+            // no need to check angle for radius of 1
+            if (radius === 1) {
+                // do normal checks
 
-        // Retreive a list of nodes from each radius
-        for (let radius = 1; radius <= jump_distance || radius === -1; radius++) {
-            this.retreiveCardinalNodes(radius).forEach((node) => {
-                node_list[node.toString()] = node;
-            });
+                
+            }
+
+            else {
+                // filter plausible nodes by angle
+            }
         }
     }
 
-    // don't need this
-    private retreiveCardinalNodes(radius: number): [number, number][] {
-        return [
-            [1 * radius, 0],
-            [1 * radius, 1 * radius],
-            [-1 * radius, 0],
-            [-1 * radius, -1 * radius],
-        ]
-    }
-
+    // PHYSICS!
     private retreiveJumpDistance(): number {
         let gravity = 32;
         let velocity_h = this.bot.physics.maxGroundSpeed; // ToDo: Account for sprinting, sprint jumping, etc.
         let velocity_y = 0.42 * 20; // 20 ticks per second
         let time = velocity_y / gravity;
         let maximum_jump_distance = 2 * time * velocity_h;
-        let realistic_jump_distance = Math.floor(((maximum_jump_distance**2)/2) ** (1/2) + 0.6); // Maximum diagonal jump distance, taking 0.3 block edge stand limit into consideration
+        let realistic_jump_distance = Math.floor(((maximum_jump_distance ** 2) / 2) ** (1 / 2) + 0.6); // Maximum diagonal jump distance, taking 0.3 block edge stand limit into consideration
         return realistic_jump_distance;
+    }
+
+    // Retreives all points in the corner of a square radius
+    private retreiveCornerVec2(x_radius: number, y_radius: number): number[][] {
+        let coordinates: number[][] = [];
+        let x_sign = Math.sign(x_radius);
+        let y_sign = Math.sign(y_radius);
+        let x_iterations = Math.abs(x_radius);
+        let y_iterations = Math.abs(y_radius);
+
+        for (let x = 1; x <= x_iterations; x++) {
+            coordinates.push([x_sign * x, y_radius]);
+
+            if (x === x_iterations) {
+                for (let y = 1; y < y_iterations; y++) {
+                    coordinates.push([x_radius, y_sign * y]);
+                }
+            }
+        }
+        return coordinates;
+    }
+
+    // Retreives all points sitting on a square radius
+    private retreiveRadiusVec2(radius: number) {
+        let coordinates: number[][] = [];
+        for (let i = 0, il = cardinal_sign.length; i < il; i++) {
+            let cardinal = this.cardinal_sign[i];
+            let diagonal = this.diagonal_sign[i];
+            coordinates.push([cardinal[0] * radius, cardinal[1] * radius]);
+            coordinates = coordinates.concat(this.retreiveCornerVec2(diagonal[0] * radius, diagonal[1] * radius));
+        }
+        return coordinates;
     }
 }
