@@ -20,6 +20,14 @@ interface node_data {
 
 export class calculation {
     private bot: mineflayer.Bot;
+
+    private cardinal_angle: Record<number, boolean> = {
+        0: true,
+        90: true,
+        180: true,
+        270: true,
+    };
+
     private cardinal_sign = [
         [1, 0],
         [0, 1],
@@ -61,6 +69,9 @@ export class calculation {
             225: [-1, -1],
             315: [-1, -1],
         }
+        
+        // angles that are obstructed
+        let blocked_angles: Record<number, boolean> = {};
         let valid_angles: Record<number, number[]> = {};  // // (angle: true)
         
         /* For now, only use radius 1
@@ -72,7 +83,16 @@ export class calculation {
             if (radius === 1) {
                 // do normal checks
 
-                
+                for (let i = 0, il = plausible.length; i < il; i++) {
+                    let coordinates = plausible[i];
+                    let angle = this.retreiveVec2Angle(coordinates);
+
+                    // Diagonal angles need to be registered
+                    if (!this.cardinal_angle[angle]) {
+
+                    }
+                    console.log(angle);
+                }
             }
 
             else {
@@ -92,7 +112,7 @@ export class calculation {
         return realistic_jump_distance;
     }
 
-    // Retreives all points in the corner of a square radius
+    // Retreives all points on the radius line on a quadrant
     private retreiveCornerVec2(x_radius: number, y_radius: number): number[][] {
         let coordinates: number[][] = [];
         let x_sign = Math.sign(x_radius);
@@ -122,5 +142,12 @@ export class calculation {
             coordinates = coordinates.concat(this.retreiveCornerVec2(diagonal[0] * radius, diagonal[1] * radius));
         }
         return coordinates;
+    }
+
+    // Returns the angle of the point on a square
+    private retreiveVec2Angle(coordinate: number[]) {
+        let x = coordinate[0];
+        let y = coordinate[1];
+        return Math.atan2(y, x) * 180/Math.PI;
     }
 }
