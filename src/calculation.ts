@@ -64,10 +64,10 @@ export class calculation {
 
         // filters non-cardinal nodes by only checking between min/max angles
         let diagonal_angle_range: Record<number, number[]> = {
-            45: [-1, -1], // min, max
-            135: [-1, -1],
-            225: [-1, -1],
-            315: [-1, -1],
+            1: [-1, -1], // min (0-45), max (0-45)
+            2: [-1, -1],
+            3: [-1, -1],
+            4: [-1, -1],
         }
         
         // angles that are obstructed
@@ -149,5 +149,22 @@ export class calculation {
         let x = coordinate[0];
         let y = coordinate[1];
         return Math.atan2(y, x) * 180/Math.PI;
+    }
+
+    // Retreives the quadrant of a non cardinal angle. Returns -1 if cardinal.
+    private retreiveNCQuadrant(angle: number): number {
+        if (this.cardinal_angle[angle]) {
+            return -1;
+        }
+
+        let NCangles = [270, 180, 90, 0];
+        let quadrant = [4, 3, 2, 1];
+
+        for (let i = 0, il = NCangles.length; i < il; i++) {
+            if (angle > NCangles[i]) {
+                return quadrant[i];
+            }
+        }
+        throw(new Error(`Unable to determine quadrant of non-angle`));
     }
 }
