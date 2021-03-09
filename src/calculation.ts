@@ -90,7 +90,8 @@ export class calculation {
 
                     // Diagonal node
                     if (!(quadrant < 0)) {
-
+                        // do not need to do for diagonal
+                        let relative_angle = angle - (90 * (quadrant - 1));
                     }
                 }
             }
