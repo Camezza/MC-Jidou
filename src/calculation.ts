@@ -88,6 +88,10 @@ export class calculation {
                     let angle = this.retreiveVec2Angle(coordinates);
                     let quadrant = this.retreiveNCQuadrant(angle);
 
+                    // Can find the angle difference with (1^2+1^2)^(1/2)
+                    // Use trigonometry to determine this, adjacent being point distance
+
+
                     // Diagonal node
                     if (!(quadrant < 0)) {
                         // do not need to do for diagonal
@@ -167,5 +171,22 @@ export class calculation {
             }
         }
         throw(new Error(`Unable to determine quadrant of non-angle`));
+    }
+
+    // Assigns a minimum/maximum index and angle to a quadrant-relative angle
+    private retreiveQRAngle(angle: number, quadrant: number) {
+
+    }
+
+    // Retreives the relative angle for its quadrant (from anti-clockwise)
+    private retreiveRelativeAngle(angle: number) {
+        let NCangles = [270, 180, 90, 0];
+
+        for (let i = 0, il = NCangles.length; i < il; i++) {
+            if (angle >= NCangles[i]) {
+                return angle - NCangles[i];
+            }
+        }
+        throw(new Error(`Unable to determine relative angle of non-angle`));
     }
 }
