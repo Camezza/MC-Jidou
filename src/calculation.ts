@@ -64,10 +64,10 @@ export class calculation {
 
         // filters non-cardinal nodes by only checking between min/max angles
         let diagonal_angle_range: Record<number, number[]> = {
-            1: [-1, -1], // min (0-45), max (0-45)
-            2: [-1, -1],
-            3: [-1, -1],
-            4: [-1, -1],
+            1: [0, 0], // min (0-90 from left), max (0-90 from right)
+            2: [0, 0],
+            3: [0, 0],
+            4: [0, 0],
         }
         
         // angles that are obstructed
@@ -86,12 +86,12 @@ export class calculation {
                 for (let i = 0, il = plausible.length; i < il; i++) {
                     let coordinates = plausible[i];
                     let angle = this.retreiveVec2Angle(coordinates);
+                    let quadrant = this.retreiveNCQuadrant(angle);
 
-                    // Diagonal angles need to be registered
-                    if (!this.cardinal_angle[angle]) {
+                    // Diagonal node
+                    if (!(quadrant < 0)) {
 
                     }
-                    console.log(angle);
                 }
             }
 
@@ -144,7 +144,7 @@ export class calculation {
         return coordinates;
     }
 
-    // Returns the angle of the point on a square
+    // Returns the angle of the point on a square (yaw)
     private retreiveVec2Angle(coordinate: number[]) {
         let x = coordinate[0];
         let y = coordinate[1];
