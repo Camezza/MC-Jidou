@@ -62,7 +62,8 @@ export class calculation {
         let jump_distance = this.retreiveJumpDistance();
         let valid_nodes: Record<number, number[]> = {}; 
 
-        // filters non-cardinal nodes by only checking between min/max angles
+        // filters non-cardinal nodes by only checking between min/max 
+        // only affects non-cardinal nodes, however can be changed from cardinal nodes
         let diagonal_angle_range: Record<number, number[]> = {
             1: [0, 0], // min (0-90 from left), max (0-90 from right)
             2: [0, 0],
@@ -88,15 +89,14 @@ export class calculation {
                     let angle = this.retreiveVec2Angle(coordinates);
                     let quadrant = this.retreiveNCQuadrant(angle);
 
-                    // Can find the angle difference with (1^2+1^2)^(1/2)
-                    // Use trigonometry to determine this, adjacent being point distance
+                    // Can find the angle difference with (1^2+1^2)^(1/2) (block diagonal distance)
+                    // Use trigonometry to determine this, adjacent being point distance (x, y) to (x2, y2)
 
 
                     // Diagonal node
-                    if (!(quadrant < 0)) {
-                        // do not need to do for diagonal
-                        let relative_angle = angle - (90 * (quadrant - 1));
-                    }
+                    // *** NEED TO CONSIDER CARDINAL NODES ***
+                    let relative_angle = angle - (90 * (quadrant - 1));
+                    
                 }
             }
 
@@ -158,10 +158,6 @@ export class calculation {
 
     // Retreives the quadrant of a non cardinal angle. Returns -1 if cardinal.
     private retreiveNCQuadrant(angle: number): number {
-        if (this.cardinal_angle[angle]) {
-            return -1;
-        }
-
         let NCangles = [270, 180, 90, 0];
         let quadrant = [4, 3, 2, 1];
 
@@ -173,20 +169,20 @@ export class calculation {
         throw(new Error(`Unable to determine quadrant of non-angle`));
     }
 
-    // Assigns a minimum/maximum index and angle to a quadrant-relative angle
-    private retreiveQRAngle(angle: number, quadrant: number) {
-
+    // Assigns a minimum/maximum angle to a quadrant-relative angle
+    private retreiveQRAngle(angle: number, index: 1 | 0): number {
+        return index ? 90 - angle : angle;
     }
 
-    // Retreives the relative angle for its quadrant (from anti-clockwise)
-    private retreiveRelativeAngle(angle: number) {
-        let NCangles = [270, 180, 90, 0];
-
-        for (let i = 0, il = NCangles.length; i < il; i++) {
-            if (angle >= NCangles[i]) {
-                return angle - NCangles[i];
-            }
-        }
-        throw(new Error(`Unable to determine relative angle of non-angle`));
+    // Retreives which half of a quadrant a relative angle is located in. (1: Left, 0: Right)
+    private retreiveAngleIndex(angle: number): 1 | 0 {
+        return angle > 45 ? 1 : 0;
     }
+
+    private retreiveCoordDistance(coordinates: number[]) {
+        let x = coordinates[0];
+        let y = coordinates[1];
+        return (x**2+y**2)**(1/2);
+    }
+
 }
