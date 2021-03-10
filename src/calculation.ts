@@ -96,7 +96,10 @@ export class calculation {
                     // Diagonal node
                     // *** NEED TO CONSIDER CARDINAL NODES ***
                     let relative_angle = angle - (90 * (quadrant - 1));
-                    
+                    let MM_index = this.retreiveAngleIndex(relative_angle);
+                    let MM_angle = this.retreiveQRAngle(relative_angle, MM_index);
+                    let blocked_angle = Math.atan2(this.retreiveCoordDistance(coordinates), this.cardinal_angle[angle] ? 1 : 2**(1/2)) * (180/Math.PI);
+                    // cardinal nodes should block both their quadrant and the one adjacent
                 }
             }
 
@@ -170,13 +173,13 @@ export class calculation {
     }
 
     // Assigns a minimum/maximum angle to a quadrant-relative angle
-    private retreiveQRAngle(angle: number, index: 1 | 0): number {
-        return index ? 90 - angle : angle;
+    private retreiveQRAngle(angle: number, index: 0 | 1): number {
+        return index === 0 ? 90 - angle : angle;
     }
 
-    // Retreives which half of a quadrant a relative angle is located in. (1: Left, 0: Right)
-    private retreiveAngleIndex(angle: number): 1 | 0 {
-        return angle > 45 ? 1 : 0;
+    // Retreives which half of a quadrant a relative angle is located in. (0: Left, 1: Right)
+    private retreiveAngleIndex(angle: number): 0 | 1 {
+        return angle > 45 ? 0 : 1;
     }
 
     private retreiveCoordDistance(coordinates: number[]) {
