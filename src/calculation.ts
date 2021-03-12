@@ -76,50 +76,41 @@ export class calculation {
         for (let radius = 1; radius < 2; radius++) {
             let plausible = this.retreiveRadiusVec2(radius);
 
-            // no need to check angle for radius of 1
-            if (radius === 1) {
-                // do normal checks
+            for (let i = 0, il = plausible.length; i < il; i++) {
+                let coordinates = plausible[i];
+                let angle = this.retreiveVec2Angle(coordinates);
+                let quadrant = this.retreiveNCQuadrant(angle);
+                let relative_angle = angle - (90 * (quadrant - 1));
+                let blocked_angle = Math.atan2(this.retreiveCoordDistance(coordinates), this.cardinal_angle[angle] ? 1 : 2 ** (1 / 2)) * (180 / Math.PI); // angle covered by boundingbox of a block
 
-                for (let i = 0, il = plausible.length; i < il; i++) {
-                    let coordinates = plausible[i];
-                    let angle = this.retreiveVec2Angle(coordinates);
-                    let quadrant = this.retreiveNCQuadrant(angle);
-                    let relative_angle = angle - (90 * (quadrant - 1));
-                    let blocked_angle = Math.atan2(this.retreiveCoordDistance(coordinates), this.cardinal_angle[angle] ? 1 : 2 ** (1 / 2)) * (180 / Math.PI); // angle covered by boundingbox of a block
+                // cardinal node
+                if (this.cardinal_angle[relative_angle]) {
+                    let previous_quadrant = this.retreivePrevQuadrant(quadrant);
+                    let quadrant_max = diagonal_angle_range[quadrant][1];
+                    let prev_quadrant_min = diagonal_angle_range[previous_quadrant][0];
 
-                        // cardinal node
-                        if (this.cardinal_angle[relative_angle]) {
-                            let previous_quadrant = this.retreivePrevQuadrant(quadrant);
-                            let quadrant_max = diagonal_angle_range[quadrant][1];
-                            let prev_quadrant_min = diagonal_angle_range[previous_quadrant][0];
-
-                            // valid (coordinate angle can be reached)
-                            if (quadrant_max < blocked_angle && prev_quadrant_min < blocked_angle) {
-                                // only update if block is solid
-                                // if block is solid: do this otherwise add to valid list
-                                diagonal_angle_range[quadrant][1] = blocked_angle;
-                                diagonal_angle_range[previous_quadrant][0] = blocked_angle;
-                            }
-                        }
-
-                        // diagonal node
-                        else {
-                            let MM_index = this.retreiveAngleIndex(relative_angle);
-                            let MM_angle = this.retreiveQRAngle(relative_angle, MM_index); // min/max offset that is covered by a block
-                            let quadrant_relative = diagonal_angle_range[quadrant][MM_index];
-
-                            // valid (coordinate angle can be reached)
-                            if (quadrant_relative < (MM_angle + blocked_angle)) {
-                                // only update if block is solid
-                                // if block is solid: do this otherwise add to valid list
-                                diagonal_angle_range[quadrant][MM_index] = MM_angle;
-                            }
-                        }
+                    // valid (coordinate angle can be reached)
+                    if (quadrant_max < blocked_angle && prev_quadrant_min < blocked_angle) {
+                        // only update if block is solid
+                        // if block is solid: do this otherwise add to valid list
+                        diagonal_angle_range[quadrant][1] = blocked_angle;
+                        diagonal_angle_range[previous_quadrant][0] = blocked_angle;
+                    }
                 }
-            }
 
-            else {
-                // filter plausible nodes by angle
+                // diagonal node
+                else {
+                    let MM_index = this.retreiveAngleIndex(relative_angle);
+                    let MM_angle = this.retreiveQRAngle(relative_angle, MM_index); // min/max offset that is covered by a block
+                    let quadrant_relative = diagonal_angle_range[quadrant][MM_index];
+
+                    // valid (coordinate angle can be reached)
+                    if (quadrant_relative < (MM_angle + blocked_angle)) {
+                        // only update if block is solid
+                        // if block is solid: do this otherwise add to valid list
+                        diagonal_angle_range[quadrant][MM_index] = MM_angle;
+                    }
+                }
             }
         }
     }
