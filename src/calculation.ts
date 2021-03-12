@@ -60,7 +60,7 @@ export class calculation {
 
     public retreiveAdjacentNodes(data_A: node_data) {
         let jump_distance = this.retreiveJumpDistance();
-        let valid_nodes: Record<number, number[]> = {}; 
+        let valid_nodes: Record<number, number[]> = {};
 
         // filters non-cardinal nodes by only checking between min/max 
         // only affects non-cardinal nodes, however can be changed from cardinal nodes
@@ -70,11 +70,7 @@ export class calculation {
             3: [0, 0],
             4: [0, 0],
         }
-        
-        // angles that are obstructed
-        let blocked_angles: Record<number, boolean> = {};
-        let valid_angles: Record<number, number[]> = {};  // // (angle: true)
-        
+
         /* For now, only use radius 1
         for (let radius = 1; radius <= jump_distance; radius++) {*/
         for (let radius = 1; radius < 2; radius++) {
@@ -88,18 +84,37 @@ export class calculation {
                     let coordinates = plausible[i];
                     let angle = this.retreiveVec2Angle(coordinates);
                     let quadrant = this.retreiveNCQuadrant(angle);
-
-                    // Can find the angle difference with (1^2+1^2)^(1/2) (block diagonal distance)
-                    // Use trigonometry to determine this, adjacent being point distance (x, y) to (x2, y2)
-
-
-                    // Diagonal node
-                    // *** NEED TO CONSIDER CARDINAL NODES ***
                     let relative_angle = angle - (90 * (quadrant - 1));
-                    let MM_index = this.retreiveAngleIndex(relative_angle);
-                    let MM_angle = this.retreiveQRAngle(relative_angle, MM_index);
-                    let blocked_angle = Math.atan2(this.retreiveCoordDistance(coordinates), this.cardinal_angle[angle] ? 1 : 2**(1/2)) * (180/Math.PI);
-                    // cardinal nodes should block both their quadrant and the one adjacent
+                    let blocked_angle = Math.atan2(this.retreiveCoordDistance(coordinates), this.cardinal_angle[angle] ? 1 : 2 ** (1 / 2)) * (180 / Math.PI); // angle covered by boundingbox of a block
+
+                        // cardinal node
+                        if (this.cardinal_angle[relative_angle]) {
+                            let previous_quadrant = this.retreivePrevQuadrant(quadrant);
+                            let quadrant_max = diagonal_angle_range[quadrant][1];
+                            let prev_quadrant_min = diagonal_angle_range[previous_quadrant][0];
+
+                            // valid (coordinate angle can be reached)
+                            if (quadrant_max < blocked_angle && prev_quadrant_min < blocked_angle) {
+                                // only update if block is solid
+                                // if block is solid: do this otherwise add to valid list
+                                diagonal_angle_range[quadrant][1] = blocked_angle;
+                                diagonal_angle_range[previous_quadrant][0] = blocked_angle;
+                            }
+                        }
+
+                        // diagonal node
+                        else {
+                            let MM_index = this.retreiveAngleIndex(relative_angle);
+                            let MM_angle = this.retreiveQRAngle(relative_angle, MM_index); // min/max offset that is covered by a block
+                            let quadrant_relative = diagonal_angle_range[quadrant][MM_index];
+
+                            // valid (coordinate angle can be reached)
+                            if (quadrant_relative < (MM_angle + blocked_angle)) {
+                                // only update if block is solid
+                                // if block is solid: do this otherwise add to valid list
+                                diagonal_angle_range[quadrant][MM_index] = MM_angle;
+                            }
+                        }
                 }
             }
 
@@ -156,10 +171,10 @@ export class calculation {
     private retreiveVec2Angle(coordinate: number[]) {
         let x = coordinate[0];
         let y = coordinate[1];
-        return Math.atan2(y, x) * 180/Math.PI;
+        return Math.atan2(y, x) * 180 / Math.PI;
     }
 
-    // Retreives the quadrant of a non cardinal angle. Returns -1 if cardinal.
+    // Retreives the quadrant of a non cardinal angle.
     private retreiveNCQuadrant(angle: number): number {
         let NCangles = [270, 180, 90, 0];
         let quadrant = [4, 3, 2, 1];
@@ -169,7 +184,7 @@ export class calculation {
                 return quadrant[i];
             }
         }
-        throw(new Error(`Unable to determine quadrant of non-angle`));
+        throw (new Error(`Unable to determine quadrant of non-angle`));
     }
 
     // Assigns a minimum/maximum angle to a quadrant-relative angle
@@ -185,7 +200,13 @@ export class calculation {
     private retreiveCoordDistance(coordinates: number[]) {
         let x = coordinates[0];
         let y = coordinates[1];
-        return (x**2+y**2)**(1/2);
+        return (x ** 2 + y ** 2) ** (1 / 2);
     }
+
+    // Retreives the previous quadrant (?)
+    private retreivePrevQuadrant(quadrant: number): number {
+        return quadrant === 1 ? 4 : quadrant - 1;
+    }
+
 
 }
