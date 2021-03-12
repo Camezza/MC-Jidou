@@ -65,7 +65,7 @@ export class calculation {
         // filters non-cardinal nodes by only checking between min/max 
         // only affects non-cardinal nodes, however can be changed from cardinal nodes
         let diagonal_angle_range: Record<number, number[]> = {
-            1: [0, 0], // min (0-90 from left), max (0-90 from right)
+            1: [0, 0], // min (0-45 from left), max (0-45 from right)
             2: [0, 0],
             3: [0, 0],
             4: [0, 0],
